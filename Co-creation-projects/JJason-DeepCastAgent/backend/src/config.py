@@ -126,6 +126,11 @@ class Configuration(BaseModel):
         title="SerpApi 密钥",
         description="SerpApi 的 API 密钥",
     )
+    cors_origins: str = Field(
+        default="http://localhost:5173,http://localhost:3000",
+        title="CORS 允许的源",
+        description="逗号分隔的允许跨域请求的源列表",
+    )
 
     @field_validator("notes_workspace", "audio_output_dir")
     @classmethod

@@ -78,9 +78,16 @@ def create_app() -> FastAPI:
     # 当前活跃的研究 agent 引用，用于支持取消操作
     _active_agent: dict[str, DeepResearchAgent | None] = {"current": None}
 
+    # 从配置读取 CORS 允许的源，避免生产环境使用通配符
+    _startup_config = Configuration.from_env()
+    _allowed_origins = [
+        origin.strip()
+        for origin in _startup_config.cors_origins.split(",")
+        if origin.strip()
+    ]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=_allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

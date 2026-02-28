@@ -4,14 +4,13 @@
 
     from .agent import DeepResearchAgent
     from .config import Configuration, SearchAPI
-    from .models import SummaryState, SummaryStateInput, SummaryStateOutput, TodoItem
+    from .models import SummaryState, SummaryStateOutput, TodoItem
 
     __all__ = [
         "DeepResearchAgent",
         "Configuration",
         "SearchAPI",
         "SummaryState",
-        "SummaryStateInput",
         "SummaryStateOutput",
         "TodoItem",
     ]
