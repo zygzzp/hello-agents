@@ -92,9 +92,9 @@
                   <div class="pipeline-step-content">
                     <div class="flex items-center gap-2">
                       <span class="text-base" :class="{ 'animate-float': isStepActive(step.id) }">{{ step.icon }}</span>
-                      <span class="text-sm font-semibold" :class="isStepActive(step.id) ? 'text-white' : isStepCompleted(step.id) ? 'text-gray-300' : 'text-gray-500'">{{ step.label }}</span>
+                      <span class="step-label text-sm font-semibold" :class="isStepActive(step.id) ? 'text-white' : isStepCompleted(step.id) ? 'text-gray-300' : 'text-gray-500'">{{ step.label }}</span>
                     </div>
-                    <p class="text-[11px] mt-0.5 ml-7" :class="isStepActive(step.id) ? 'text-gray-400' : 'text-gray-600'">{{ step.desc }}</p>
+                    <p class="step-desc text-[11px] mt-0.5 ml-7" :class="isStepActive(step.id) ? 'text-gray-400' : 'text-gray-600'">{{ step.desc }}</p>
                   </div>
                 </div>
               </div>
@@ -261,7 +261,7 @@ function isStepPending(stepId: ProductionStage) {
   background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
   border-radius: 0 2px 2px 0;
 }
 
@@ -309,13 +309,22 @@ function isStepPending(stepId: ProductionStage) {
   padding: 10px 8px;
   border-radius: 10px;
   position: relative;
-  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  margin: 0;
+  transition:
+    background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    margin 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .pipeline-step--active {
   background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.15);
   margin: 0 -4px;
   padding: 10px 12px;
+  transform: scale(1.02);
 }
 .pipeline-step--completed {
   opacity: 0.85;
@@ -328,14 +337,34 @@ function isStepPending(stepId: ProductionStage) {
   top: 38px;
   width: 2px;
   height: calc(100% - 10px);
-  background: rgba(255, 255, 255, 0.06);
   border-radius: 1px;
   z-index: 1;
+  overflow: hidden;
 }
-.pipeline-connector--completed {
+/* Use a pseudo-element to animate the fill from top to bottom */
+.pipeline-connector::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.06);
+  transition: opacity 0.6s ease;
+}
+.pipeline-connector::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
   background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  border-radius: 1px;
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.pipeline-connector--active {
+.pipeline-connector--completed::after {
+  height: 100%;
+}
+.pipeline-connector--active::after {
+  height: 60%;
   background: linear-gradient(180deg, #3b82f6 0%, rgba(59, 130, 246, 0.15) 100%);
 }
 
@@ -351,19 +380,33 @@ function isStepPending(stepId: ProductionStage) {
   position: relative;
   z-index: 2;
   margin-top: 1px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  transition:
+    background 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-width 0.3s ease,
+    box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .pipeline-step--completed .pipeline-indicator {
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-color: transparent;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  transform: scale(1);
+  animation: indicator-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .pipeline-step--active .pipeline-indicator {
   background: rgba(59, 130, 246, 0.15);
   border: 2px solid #3b82f6;
   box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+  animation: indicator-glow-in 0.6s ease;
 }
 .pipeline-step--pending .pipeline-indicator {
   background: rgba(255, 255, 255, 0.04);
   border: 1.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
 }
 
 /* ── Active Pulse Dot ── */
@@ -381,6 +424,9 @@ function isStepPending(stepId: ProductionStage) {
   flex: 1;
   min-width: 0;
 }
+.step-label, .step-desc {
+  transition: color 0.5s ease;
+}
 
 /* ── Status Chip ── */
 .pipeline-status-chip {
@@ -392,6 +438,10 @@ function isStepPending(stepId: ProductionStage) {
   background: rgba(59, 130, 246, 0.08);
   border: 1px solid rgba(59, 130, 246, 0.12);
   color: #93c5fd;
+  transition:
+    background 0.5s ease,
+    border-color 0.5s ease,
+    color 0.5s ease;
 }
 .pipeline-status-chip--done {
   background: rgba(16, 185, 129, 0.08);
@@ -495,5 +545,17 @@ function isStepPending(stepId: ProductionStage) {
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+@keyframes indicator-pop {
+  0% { transform: scale(0.6); opacity: 0.5; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes indicator-glow-in {
+  0% { box-shadow: 0 0 0 rgba(59, 130, 246, 0); }
+  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+  100% { box-shadow: 0 0 12px rgba(59, 130, 246, 0.25); }
 }
 </style>
