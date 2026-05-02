@@ -152,7 +152,7 @@ We are an open-source community and welcome any form of contribution!
 ## Star History
 
 <div align='center'>
-    <img src="./images/star-history-2026324.png" alt="Datawhale" width="90%">
+    <img src="./images/star-history-2026424.png" alt="Datawhale" width="90%">
 </div>
 
 <div align="center">
@@ -172,6 +172,20 @@ We are an open-source community and welcome any form of contribution!
     <img src="./images/datawhale.png" alt="Datawhale" width="30%">
     <p>Scan the QR code to follow the Datawhale official account and get more quality open-source content</p>
 </div>
+
+## 🎓 Citation
+
+If Hello-Agents is helpful to your research or work, please cite:
+
+```bibtex
+@misc{hello_agents2025,
+  title  = {Hello-Agents: Building an Agent from Scratch},
+  author = {Sizhou Chen and Tao Sun and Shufan Jiang and Peilin Huang and Xinmin Zeng and Xinzhong Zhu and all Hello-Agents contributors},
+  year   = {2025},
+  url    = {https://github.com/datawhalechina/Hello-Agents},
+  note   = {GitHub repository}
+}
+```
 
 ---
 
