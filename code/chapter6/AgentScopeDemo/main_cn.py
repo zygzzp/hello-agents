@@ -12,6 +12,7 @@ from agentscope.agent import ReActAgent
 from agentscope.model import DashScopeChatModel
 from agentscope.pipeline import MsgHub, sequential_pipeline, fanout_pipeline
 from agentscope.formatter import DashScopeMultiAgentFormatter
+from dotenv import load_dotenv
 
 from prompt_cn import ChinesePrompts
 from game_roles import GameRoles
@@ -65,11 +66,14 @@ class ThreeKingdomsWerewolfGame:
                 api_key=os.environ["DASHSCOPE_API_KEY"],
                 enable_thinking=True,
             ),
+            # 每种model provider 有不同的message形式 需要formatter
             formatter=DashScopeMultiAgentFormatter(),
         )
         
         # 角色身份确认
+        # observe观察-给agent增加背景历史消息 但不要求回复 不触发llm
         await agent.observe(
+            # 生成游戏主持人的msg 存入到游戏主持人的游戏日志 并把消息给agent观察
             await self.moderator.announce(
                 f"【{name}】你在这场三国狼人杀中扮演{GameRoles.get_role_desc(role)}，"
                 f"你的角色是{character}。{GameRoles.get_role_ability(role)}"
@@ -122,9 +126,11 @@ class ThreeKingdomsWerewolfGame:
         await self.moderator.announce(f"🐺 狼人请睁眼，选择今晚要击杀的目标...")
         
         # 狼人讨论
+        # 异步上下文处理器-aenter/aexit 跟数据库连接比较像用于enter建议连接 exit释放连接
         async with MsgHub(
-            self.werewolves,
-            enable_auto_broadcast=True,
+            self.werewolves, #哪些agent可以收到频道内的广播
+            enable_auto_broadcast=True, # 频道内任意智能体发言是否自动广播给其他智能体
+            # 开场公告 会进过aenter分发给所有agent
             announcement=await self.moderator.announce(
                 f"狼人们，请讨论今晚的击杀目标。存活玩家：{format_player_list(self.alive_players)}"
             ),
@@ -132,15 +138,18 @@ class ThreeKingdomsWerewolfGame:
             # 讨论阶段
             for _ in range(MAX_DISCUSSION_ROUND):
                 for wolf in self.werewolves:
+                    # agent 读取自身memory 并进行推理 ，按照约束输出
+                    # Msg进行了自动广播，其他agent能观察到 内部做了print
                     await wolf(structured_model=DiscussionModelCN)
             
-            # 投票击杀
+            # 投票击杀 隔离agent发言、关闭广播
             werewolves_hub.set_auto_broadcast(False)
+            # 并发的让每个agent走一次推理
             kill_votes = await fanout_pipeline(
-                self.werewolves,
+                self.werewolves, # 哪些智能体参与本次并发调用
                 msg=await self.moderator.announce("请选择击杀目标"),
-                structured_model=WerewolfKillModelCN,
-                enable_gather=False,
+                structured_model=WerewolfKillModelCN, # agent回复约束
+                enable_gather=False, # 是否将agent回复的msg合并成一条
             )
             
             # 统计投票
@@ -168,6 +177,7 @@ class ThreeKingdomsWerewolfGame:
         await self.moderator.announce("🔮 预言家请睁眼，选择要查验的玩家...")
         
         check_result = await seer_agent(
+            # 由于存活人数不固定 所以要返回动态的pydantic模型
             structured_model=get_seer_model_cn(self.alive_players)
         )
 
@@ -185,6 +195,7 @@ class ThreeKingdomsWerewolfGame:
         
         # 告知预言家结果
         result_msg = f"查验结果：{target_name}是{'狼人' if target_role == '狼人' else '好人'}"
+        # 让预言家得到一个观察结果
         await seer_agent.observe(await self.moderator.announce(result_msg))
     
     async def witch_phase(self, killed_player: str):
@@ -366,6 +377,7 @@ class ThreeKingdomsWerewolfGame:
 
 
 async def main():
+    load_dotenv()
     """主函数"""
     # 检查环境变量
     if "DASHSCOPE_API_KEY" not in os.environ:

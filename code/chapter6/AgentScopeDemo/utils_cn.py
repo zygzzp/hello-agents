@@ -41,8 +41,10 @@ def majority_vote_cn(votes: Dict[str, str]) -> tuple[str, int]:
     """中文版多数投票统计"""
     if not votes:
         return "无人", 0
-    
+
+    # counter统计 返回字典{"value":"count"}
     vote_counts = Counter(votes.values())
+    # 返回次数最多的前1个[(元素,次数)]
     most_voted = vote_counts.most_common(1)[0]
     
     return most_voted[0], most_voted[1]
